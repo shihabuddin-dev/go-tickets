@@ -22,6 +22,7 @@ func (cv *CustomValidator) Validate(i any) error {
 	return nil
 }
 
+// User model
 type User struct {
 	gorm.Model
 	Name     string `json:"name" validate:"required" gorm:"type:varchar(100)"`

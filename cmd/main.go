@@ -24,7 +24,8 @@ func (cv *CustomValidator) Validate(i any) error {
 }
 
 func main() {
-	dsn := "DATABASE_URL"
+	dsn := "database"
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		TranslateError: true,
 	})

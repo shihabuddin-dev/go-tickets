@@ -13,7 +13,7 @@ type Repository interface {
 	// GetUsers() ([]User, error)
 }
 
-type respsitory struct {
+type repository struct {
 	db *gorm.DB
 }
 

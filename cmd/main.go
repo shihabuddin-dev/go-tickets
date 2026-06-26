@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-tickets/internal/user"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -27,12 +28,13 @@ func main() {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		TranslateError: true,
 	})
-	db.AutoMigrate(&User{}) // Auto-migrate the User model to create the users table if it doesn't exist
 	if err != nil {
 		panic("failed to connect database")
 	} else {
 		println("Database connection successful")
 	}
+	// Auto-migrate the User model to create the users table if it doesn't exist
+	db.AutoMigrate(&user.User{})
 
 	e := echo.New()
 	e.Use(middleware.RequestLogger())
@@ -45,23 +47,11 @@ func main() {
 		return c.String(http.StatusOK, "This is From Users Routes")
 	})
 
-	e.POST("/users", func(c *echo.Context) (err error) {
-		newUser := new(User)
-		if err = c.Bind(newUser); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]any{"error": err.Error()})
-		}
-		if err = c.Validate(newUser); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]any{"error": err.Error()})
-		}
+	userRepository := user.NewRepository(db)
+	userService := user.NewService(userRepository)
 
-		// save to database
-		result := db.Create(newUser)
-		if result.Error != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]any{"error": result.Error.Error()})
-		}
-
-		return c.JSON(http.StatusOK, newUser)
-	})
+	userHandler := user.NewHandler(userService)
+	e.POST("/users", userHandler.CreateUser)
 
 	if err := e.Start(":8080"); err != nil {
 		e.Logger.Error("failed to start server", "error", err)

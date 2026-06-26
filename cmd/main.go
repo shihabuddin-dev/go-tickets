@@ -24,7 +24,7 @@ func (cv *CustomValidator) Validate(i any) error {
 }
 
 func main() {
-	dsn := "postgresql://neondb_owner:npg_QZK9BwDuem2N@ep-quiet-snow-ats6obxj-pooler.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+	dsn := "database"
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		TranslateError: true,

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go-tickets/internal/config"
 	"go-tickets/internal/user"
 	"net/http"
 
@@ -24,7 +25,8 @@ func (cv *CustomValidator) Validate(i any) error {
 }
 
 func main() {
-	dsn := "database"
+	config := config.LoadEnv()
+	dsn := config.Dsn
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		TranslateError: true,
@@ -39,22 +41,17 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.RequestLogger())
-	e.Validator = &CustomValidator{validator: validator.New()}
 
 	e.GET("/", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
-	e.GET("/users", func(c *echo.Context) error {
-		return c.String(http.StatusOK, "This is From Users Routes")
-	})
 
-	userRepository := user.NewRepository(db)
-	userService := user.NewService(userRepository)
+	e.Validator = &CustomValidator{validator: validator.New()}
 
-	userHandler := user.NewHandler(userService)
-	e.POST("/users", userHandler.CreateUser)
+	// user route registration
+	user.RegisterRoutes(e, db)
 
-	if err := e.Start(":8080"); err != nil {
+	if err := e.Start(":" + config.Port + ""); err != nil {
 		e.Logger.Error("failed to start server", "error", err)
 	}
 }
